@@ -20,13 +20,13 @@ available_functions = types.Tool(
 def call_function(function_call, verbose=False):
     function_name = function_call.name or ""
     if verbose:
-        print(f"Calling function: {function_call.name}({function_call.args})")
+        print(f"Calling function: {function_name}({function_call.args})")
     else:
-        print(f" - Calling function: {function_call.name}")
+        print(f" - Calling function: {function_name}")
     function_map = {
         "get_file_content": get_file_content,
         "write_file": write_file,
-        "get_files_info": get_files_info
+        "get_files_info": get_files_info,
         "run_python_file": run_python_file 
     }
     if function_name not in function_map:
@@ -41,4 +41,14 @@ def call_function(function_call, verbose=False):
         )
     args = dict(function_call.args) if function_call.args else {}
     args["working_directory"] = "./calculator"
-
+    real_func = function_map[function_name]
+    function_result = real_func(**args)
+    return types.Content(
+        role="tool",
+        parts=[
+            types.Part.from_function_response(
+                name=function_name,
+                response={"result": function_result}, 
+            )
+        ],
+    )
